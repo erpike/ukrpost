@@ -87,12 +87,7 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # region
                         table = 'region'
                         regions = set((row['region'] for row in rows))
-                        sql = f"""INSERT INTO 
-                            {table} (name) 
-                            VALUES {",".join(["(%s)"] * len(regions))}
-                            ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-                            RETURNING region.name, region.id
-                            """
+                        sql = f"INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id"
                         results = await conn.execute(sql, list(regions))
                         res = {row[0]: row[1] for row in results}
                         for row in rows:
@@ -101,7 +96,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # district
                         table = 'district'
                         districts = set((row['district'], row['region']) for row in rows)
-                        sql = f"""INSERT INTO
+                        sql = f"""
+                            INSERT INTO
                             {table} (name, region_id)
                             VALUES {",".join(["(%s,%s)"] * len(districts))}
                             ON CONFLICT (name, region_id) DO UPDATE SET name = EXCLUDED.name
@@ -115,7 +111,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # city
                         table = 'city'
                         cities = set((row['city'], row['district']) for row in rows)
-                        sql = f"""INSERT INTO
+                        sql = f"""
+                            INSERT INTO
                             {table} (name, district_id)
                             VALUES {",".join(["(%s,%s)"] * len(cities))}
                             ON CONFLICT (name, district_id) DO UPDATE SET name = EXCLUDED.name
@@ -129,7 +126,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # street
                         table = 'street'
                         streets = set((row['street'], row['city']) for row in rows)
-                        sql = f"""INSERT INTO
+                        sql = f"""
+                            INSERT INTO
                             {table} (name, city_id)
                             VALUES {",".join(["(%s,%s)"] * len(streets))}
                             ON CONFLICT (name, city_id) DO UPDATE SET name = EXCLUDED.name
@@ -142,7 +140,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # house
                         table = 'house'
                         houses = set((row['zip_code'], house, row['street']) for row in rows for house in row['houses'].split(','))
-                        sql = f"""INSERT INTO
+                        sql = f"""
+                            INSERT INTO
                             {table} (zip_code, number, street_id)
                             VALUES {",".join(["(%s,%s,%s)"] * len(houses))}
                             ON CONFLICT (zip_code, number, street_id) DO NOTHING
