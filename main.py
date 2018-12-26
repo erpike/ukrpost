@@ -87,8 +87,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # region
                         table = 'region'
                         regions = set((row['region'] for row in rows))
-                        sql = f"INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id"
-                        results = await conn.execute(sql, list(regions))
+                        # sql = f"INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id"
+                        results = await conn.execute("INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id", list(regions))
                         res = {row[0]: row[1] for row in results}
                         for row in rows:
                             row['region'] = res[row['region']]
