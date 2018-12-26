@@ -88,7 +88,7 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         table = 'region'
                         regions = set((row['region'] for row in rows))
                         # sql = f"INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id"
-                        results = await conn.execute("INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id", list(regions))
+                        results = await conn.execute(f"INSERT INTO {table} (name) VALUES {','.join(['(%s)'] * len(regions))} ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING region.name, region.id", list(regions))
                         res = {row[0]: row[1] for row in results}
                         for row in rows:
                             row['region'] = res[row['region']]
@@ -96,14 +96,8 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
                         # district
                         table = 'district'
                         districts = set((row['district'], row['region']) for row in rows)
-                        sql = f"""
-                            INSERT INTO
-                            {table} (name, region_id)
-                            VALUES {",".join(["(%s,%s)"] * len(districts))}
-                            ON CONFLICT (name, region_id) DO UPDATE SET name = EXCLUDED.name
-                            RETURNING {table}.region_id, {table}.name, {table}.id
-                            """
-                        results = await conn.execute(sql, list(chain(*districts)))
+                        # sql = f"INSERT INTO {table} (name, region_id) VALUES {','.join(['(%s,%s)'] * len(districts))} ON CONFLICT (name, region_id) DO UPDATE SET name = EXCLUDED.name RETURNING {table}.region_id, {table}.name, {table}.id"
+                        results = await conn.execute(f"INSERT INTO {table} (name, region_id) VALUES {','.join(['(%s,%s)'] * len(districts))} ON CONFLICT (name, region_id) DO UPDATE SET name = EXCLUDED.name RETURNING {table}.region_id, {table}.name, {table}.id", list(chain(*districts)))
                         res = {(row[0], row[1]): row[2] for row in results}
                         for row in rows:
                             row['district'] = res[row['region'], row['district']]
