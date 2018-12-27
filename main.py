@@ -168,7 +168,7 @@ def index():
         print('download zip')
         loop.run_until_complete(download_zip(REMOTE_ZIP_URL, ZIP_FILENAME, loop))
         print('update tb')
-        loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
+        # loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
