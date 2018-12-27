@@ -71,107 +71,6 @@ async def create_tables(conn):
     await conn.execute(sql)
 
 
-async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
-    async with create_engine(dsn) as engine:
-        async with engine.acquire() as conn:
-            with ZipFile(zip_filename) as z:
-                with z.open(csv_filename, 'r') as f:
-                    from datetime import datetime
-                    fieldnames = ('region', 'district', 'city', 'zip_code', 'street', 'houses')
-                    c = csv.DictReader(TextIOWrapper(f), fieldnames=fieldnames, delimiter=';')
-                    headers = next(c)
-                    await create_tables(conn)
-                    for rows in grouped(c, batch_size):
-                        now = datetime.now()
-
-                        # region
-                        table = 'region'
-                        regions = set((row['region'] for row in rows))
-                        sql = f'''INSERT INTO 
-                           {table} (name) 
-                           VALUES {",".join(["(%s)"] * len(regions))}
-                           ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-                           RETURNING region.name, region.id'''
-                        results = await conn.execute(sql, list(regions))
-                        res = {row[0]: row[1] for row in results}
-                        for row in rows:
-                            row['region'] = res[row['region']]
-
-                        # district
-                        table = 'district'
-                        districts = set((row['district'], row['region']) for row in rows)
-                        sql = f'''INSERT INTO
-                           {table} (name, region_id)
-                           VALUES {",".join(["(%s,%s)"] * len(districts))}
-                           ON CONFLICT (name, region_id) DO UPDATE SET name = EXCLUDED.name
-                           RETURNING {table}.region_id, {table}.name, {table}.id'''
-                        results = await conn.execute(sql, list(chain(*districts)))
-                        res = {(row[0], row[1]): row[2] for row in results}
-                        for row in rows:
-                            row['district'] = res[row['region'], row['district']]
-
-                        # city
-                        table = 'city'
-                        cities = set((row['city'], row['district']) for row in rows)
-                        sql = f"""
-                            INSERT INTO
-                            {table} (name, district_id)
-                            VALUES {",".join(["(%s,%s)"] * len(cities))}
-                            ON CONFLICT (name, district_id) DO UPDATE SET name = EXCLUDED.name
-                            RETURNING {table}.district_id, {table}.name, {table}.id
-                            """
-                        results = await conn.execute(sql, list(chain(*cities)))
-                        res = {(row[0], row[1]): row[2] for row in results}
-                        for row in rows:
-                            row['city'] = res[row['district'], row['city']]
-
-                        # street
-                        table = 'street'
-                        streets = set((row['street'], row['city']) for row in rows)
-                        sql = f"""
-                            INSERT INTO
-                            {table} (name, city_id)
-                            VALUES {",".join(["(%s,%s)"] * len(streets))}
-                            ON CONFLICT (name, city_id) DO UPDATE SET name = EXCLUDED.name
-                            RETURNING {table}.city_id, {table}.name, {table}.id
-                            """
-                        results = await conn.execute(sql, list(chain(*streets)))
-                        res = {(row[0], row[1]): row[2] for row in results}
-                        for row in rows:
-                            row['street'] = res[row['city'], row['street']]
-                        # house
-                        table = 'house'
-                        houses = set((row['zip_code'], house, row['street']) for row in rows for house in row['houses'].split(','))
-                        sql = f"""
-                            INSERT INTO
-                            {table} (zip_code, number, street_id)
-                            VALUES {",".join(["(%s,%s,%s)"] * len(houses))}
-                            ON CONFLICT (zip_code, number, street_id) DO NOTHING
-                            """
-                        await conn.execute(sql, list(chain(*houses)))
-
-
-@app.route('/')
-def hello():
-    """Return a friendly HTTP greeting."""
-    a = 3
-    return f'Hello World!, a={a}'
-
-
-@app.route('/upload')
-def index():
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    with closing(asyncio.get_event_loop()) as loop:
-        # sql = '''SELECT * FROM region'''
-        # loop.run_until_complete(make_request(DSN, sql))
-
-        print('download zip')
-        loop.run_until_complete(download_zip(REMOTE_ZIP_URL, ZIP_FILENAME, loop))
-        print('update tb')
-        # loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
-    return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
-
-
 def grouped(iterator, batch_size):
     batch = []
     try:
@@ -193,6 +92,27 @@ async def download_zip(url, zip_filename, loop, batch_size=1024*100):
                     if not chunk:
                         break
                     f.write(chunk)
+
+
+@app.route('/')
+def hello():
+    """Return a friendly HTTP greeting."""
+    a = 3
+    return f'Hello World!, a={a}'
+
+
+@app.route('/upload')
+def index():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    with closing(asyncio.get_event_loop()) as loop:
+        # sql = '''SELECT * FROM region'''
+        # loop.run_until_complete(make_request(DSN, sql))
+
+        print('download zip')
+        loop.run_until_complete(download_zip(REMOTE_ZIP_URL, ZIP_FILENAME, loop))
+        print('update tb')
+        # loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
+    return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
 @app.errorhandler(500)
