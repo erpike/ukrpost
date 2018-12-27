@@ -152,6 +152,13 @@ async def update_db(dsn, zip_filename, csv_filename, batch_size=10000):
 
 
 @app.route('/')
+def hello():
+    """Return a friendly HTTP greeting."""
+    a = 3
+    return f'Hello World!, a={a}'
+
+
+@app.route('/upload')
 def index():
     asyncio.set_event_loop(asyncio.new_event_loop())
     with closing(asyncio.get_event_loop()) as loop:
@@ -162,7 +169,6 @@ def index():
         loop.run_until_complete(download_zip(REMOTE_ZIP_URL, ZIP_FILENAME, loop))
         print('update tb')
         loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
-
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
