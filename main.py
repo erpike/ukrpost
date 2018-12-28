@@ -18,7 +18,7 @@ app = Flask(__name__)
 DSN = 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
 CSV_FILENAME = 'houses.csv'
 CHUNK_SIZE = 1024 * 100
-ZIP_FILENAME = 'houses.zip'
+ZIP_FILENAME = '/tmp/ukrpost/houses.zip'
 REMOTE_ZIP_URL = 'http://services.ukrposhta.com/postindex_new/upload/houses.zip'
 
 os.environ['SQLALCHEMY_DATABASE_URI'] = DSN
