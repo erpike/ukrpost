@@ -3,6 +3,7 @@ import aiohttp
 import csv
 import logging
 import os
+import sqlalchemy
 
 from aiopg.sa import create_engine
 from contextlib import closing
@@ -20,6 +21,27 @@ CSV_FILENAME = 'houses.csv'
 CHUNK_SIZE = 1024 * 100
 ZIP_FILENAME = '/tmp/houses.zip'
 REMOTE_ZIP_URL = 'http://services.ukrposhta.com/postindex_new/upload/houses.zip'
+
+# db_user = os.environ.get("DB_USER")
+# db_pass = os.environ.get("DB_PASS")
+# db_name = os.environ.get("DB_NAME")
+# cloud_sql_instance_name = os.environ.get("CLOUD_SQL_INSTANCE_NAME")
+
+db = sqlalchemy.create_engine(
+    # Equivalent URL:
+    # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+    # 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
+    sqlalchemy.engine.url.URL(
+        drivername='mysql+pymysql',
+        username='postgres',
+        password='qwertypark',
+        database='addr_db',
+        query={
+            'unix_socket': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
+        }
+    ),
+)
+
 
 os.environ['SQLALCHEMY_DATABASE_URI'] = DSN
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
@@ -95,14 +117,14 @@ async def download_zip(url, zip_filename, loop, batch_size=1024*100):
 
 
 @app.route('/')
-def hello():
+def index():
     """Return a friendly HTTP greeting."""
     a = 5
     return f'Hello World!, a={a}'
 
 
 @app.route('/upload')
-def index():
+def upload():
     asyncio.set_event_loop(asyncio.new_event_loop())
     with closing(asyncio.get_event_loop()) as loop:
         # sql = '''SELECT * FROM region'''
@@ -110,8 +132,24 @@ def index():
 
         print('download zip')
         loop.run_until_complete(download_zip(REMOTE_ZIP_URL, ZIP_FILENAME, loop))
-        print('update tb')
+        # print('update tb')
         # loop.run_until_complete(update_db(DSN, ZIP_FILENAME, CSV_FILENAME))
+    return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+async def make_request(db, sql):
+    async with db.connect() as conn:
+        result = await conn.execute(sql)
+        for r in result:
+            print(r)
+
+
+@app.route('/update')
+def update():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    with closing(asyncio.get_event_loop()) as loop:
+        print('update tb')
+        loop.run_until_complete(make_request(db, 'SELECT * FROM region'))
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
