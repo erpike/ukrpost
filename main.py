@@ -25,66 +25,66 @@ ZIP_FILENAME = '/tmp/houses.zip'
 REMOTE_ZIP_URL = 'http://services.ukrposhta.com/postindex_new/upload/houses.zip'
 
 
-db = sqlalchemy.create_engine(
-    # Equivalent URL:
-    # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
-    # 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
-    sqlalchemy.engine.url.URL(
-        drivername='mysql+pymysql',
-        username='postgres',
-        password='qwertypark',
-        database='addr_db',
-        query={
-            'unix_socket': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
-        }
-    ),
-)
-
 # db = sqlalchemy.create_engine(
 #     # Equivalent URL:
-#     # postgres+pg8000://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+#     # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+#     # 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
 #     sqlalchemy.engine.url.URL(
-#         drivername='postgres+pg8000',
+#         drivername='mysql+pymysql',
 #         username='postgres',
 #         password='qwertypark',
 #         database='addr_db',
 #         query={
-#             'unix_sock': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
+#             'unix_socket': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
 #         }
 #     ),
-#     # ... Specify additional properties here.
-#     # [START_EXCLUDE]
-#
-#     # [START cloud_sql_postgres_limit_connections]
-#     # Pool size is the maximum number of permanent connections to keep.
-#     pool_size=5,
-#     # Temporarily exceeds the set pool_size if no connections are available.
-#     max_overflow=2,
-#     # The total number of concurrent connections for your application will be
-#     # a total of pool_size and max_overflow.
-#     # [END cloud_sql_postgres_limit_connections]
-#
-#     # [START cloud_sql_postgres_connection_backoff]
-#     # SQLAlchemy automatically uses delays between failed connection attempts,
-#     # but provides no arguments for configuration.
-#     # [END cloud_sql_postgres_connection_backoff]
-#
-#     # [START cloud_sql_postgres_connection_timeout]
-#     # 'pool_timeout' is the maximum number of seconds to wait when retrieving a
-#     # new connection from the pool. After the specified amount of time, an
-#     # exception will be thrown.
-#     pool_timeout=30,  # 30 seconds
-#     # [END cloud_sql_postgres_connection_timeout]
-#
-#     # [START cloud_sql_postgres_connection_lifetime]
-#     # 'pool_recycle' is the maximum number of seconds a connection can persist.
-#     # Connections that live longer than the specified amount of time will be
-#     # reestablished
-#     pool_recycle=1800,  # 30 minutes
-#     # [END cloud_sql_postgres_connection_lifetime]
-#
-#     # [END_EXCLUDE]
 # )
+
+db = sqlalchemy.create_engine(
+    # Equivalent URL:
+    # postgres+pg8000://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+    sqlalchemy.engine.url.URL(
+        drivername='postgres+pg8000',
+        username='postgres',
+        password='qwertypark',
+        database='addr_db',
+        query={
+            'unix_sock': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
+        }
+    ),
+    # ... Specify additional properties here.
+    # [START_EXCLUDE]
+
+    # [START cloud_sql_postgres_limit_connections]
+    # Pool size is the maximum number of permanent connections to keep.
+    pool_size=5,
+    # Temporarily exceeds the set pool_size if no connections are available.
+    max_overflow=2,
+    # The total number of concurrent connections for your application will be
+    # a total of pool_size and max_overflow.
+    # [END cloud_sql_postgres_limit_connections]
+
+    # [START cloud_sql_postgres_connection_backoff]
+    # SQLAlchemy automatically uses delays between failed connection attempts,
+    # but provides no arguments for configuration.
+    # [END cloud_sql_postgres_connection_backoff]
+
+    # [START cloud_sql_postgres_connection_timeout]
+    # 'pool_timeout' is the maximum number of seconds to wait when retrieving a
+    # new connection from the pool. After the specified amount of time, an
+    # exception will be thrown.
+    pool_timeout=30,  # 30 seconds
+    # [END cloud_sql_postgres_connection_timeout]
+
+    # [START cloud_sql_postgres_connection_lifetime]
+    # 'pool_recycle' is the maximum number of seconds a connection can persist.
+    # Connections that live longer than the specified amount of time will be
+    # reestablished
+    pool_recycle=1800,  # 30 minutes
+    # [END cloud_sql_postgres_connection_lifetime]
+
+    # [END_EXCLUDE]
+)
 # [END cloud_sql_postgres_connection_pool]
 
 async def make_request(dsn, sql):
