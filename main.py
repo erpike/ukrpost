@@ -24,10 +24,6 @@ CHUNK_SIZE = 1024 * 100
 ZIP_FILENAME = '/tmp/houses.zip'
 REMOTE_ZIP_URL = 'http://services.ukrposhta.com/postindex_new/upload/houses.zip'
 
-# db_user = os.environ.get("DB_USER")
-# db_pass = os.environ.get("DB_PASS")
-# db_name = os.environ.get("DB_NAME")
-# cloud_sql_instance_name = os.environ.get("CLOUD_SQL_INSTANCE_NAME")
 
 db = sqlalchemy.create_engine(
     # Equivalent URL:
@@ -43,13 +39,6 @@ db = sqlalchemy.create_engine(
         }
     ),
 )
-
-
-os.environ['SQLALCHEMY_DATABASE_URI'] = DSN
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
 
 
 async def make_request(dsn, sql):
@@ -121,7 +110,7 @@ async def download_zip(url, zip_filename, loop, batch_size=1024*100):
 @app.route('/')
 def index():
     """Return a friendly HTTP greeting."""
-    a = 8
+    a = 9
     return f'Hello World!, a={a}'
 
 
@@ -139,14 +128,6 @@ def upload():
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
-async def make_request(dsn, sql):
-    async with create_engine(dsn) as engine:
-        async with engine.acquire() as conn:
-            result = await conn.execute(sql)
-            for r in result:
-                print(r)
-
-
 @app.route('/update')
 def update():
     asyncio.set_event_loop(asyncio.new_event_loop())
@@ -155,6 +136,12 @@ def update():
         loop.run_until_complete(make_request(DSN, 'SELECT * FROM region'))
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
+@app.route('/update2')
+def update2():
+    with db.connect() as conn:
+        conn.execute(
+            "SELECT * FROM region"
+        )
 
 @app.errorhandler(500)
 def server_error(e):
