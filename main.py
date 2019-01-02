@@ -37,17 +37,17 @@ logger = logging.getLogger()
 db = sqlalchemy.create_engine(
     # Equivalent URL:
     # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
-    # sqlalchemy.engine.url.URL(
-    #     drivername='mysql+pymysql',
-    #     username=db_user,
-    #     password=db_pass,
-    #     database=db_name,
-    #     query={
-    #         'unix_socket': '/cloudsql/{}'.format(cloud_sql_instance_name)
-    #     }
-    # )
-    'mysql+pymysql://postgres:qwertypark@/addr_db?unix_socket=/cloudsql/ukrpost2-224713:europe-west1:addresses'
-    ,
+    sqlalchemy.engine.url.URL(
+        drivername='mysql+pymysql',
+        username='postgres',
+        password='qwertypark',
+        database='addr_db',
+        query={
+            'unix_socket': '/cloudsql/{}'.format('ukrpost2-224713:europe-west1:addresses')
+        }
+    ),
+    # 'mysql+pymysql://postgres:qwertypark@/addr_db?unix_socket=/cloudsql/ukrpost2-224713:europe-west1:addresses'
+
     # ... Specify additional properties here.
     # [START_EXCLUDE]
 
@@ -121,7 +121,7 @@ def index():
         space_count = space_result[0]
 
     return render_template(
-        'index.html',
+        'templates/index.html',
         recent_votes=votes,
         tab_count=tab_count,
         space_count=space_count
