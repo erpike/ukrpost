@@ -1,1 +1,7 @@
 runtime: python37
+
+env_variables:
+  CLOUD_SQL_INSTANCE_NAME: ukrpost2-224713:europe-west1:addresses
+  DB_USER: postgres
+  DB_PASS: qwertypark
+  DB_NAME: addr_db
