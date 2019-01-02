@@ -121,7 +121,7 @@ def index():
         space_count = space_result[0]
 
     return render_template(
-        'templates/index.html',
+        'index.html',
         recent_votes=votes,
         tab_count=tab_count,
         space_count=space_count
