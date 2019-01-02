@@ -17,7 +17,7 @@ from zipfile import ZipFile
 app = Flask(__name__)
 
 #DSN = 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
-DSN = 'mysql+pymysql://postgres:qwertypark@/addr_db?unix_socket=/cloudsql/ukrpost2-224713:europe-west1:addresses'
+DSN = 'postgres+pg8000://postgres:qwertypark@/addr_db?unix_socket=/cloudsql/ukrpost2-224713:europe-west1:addresses'
 
 CSV_FILENAME = 'houses.csv'
 CHUNK_SIZE = 1024 * 100
