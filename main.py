@@ -16,7 +16,9 @@ from zipfile import ZipFile
 
 app = Flask(__name__)
 
-DSN = 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
+#DSN = 'postgresql://postgres:qwertypark@localhost:5433/addr_db'
+DSN = 'mysql+pymysql://postgres:qwertypark@/addr_db?unix_socket=/cloudsql/ukrpost2-224713:europe-west1:addresses'
+
 CSV_FILENAME = 'houses.csv'
 CHUNK_SIZE = 1024 * 100
 ZIP_FILENAME = '/tmp/houses.zip'
@@ -119,7 +121,7 @@ async def download_zip(url, zip_filename, loop, batch_size=1024*100):
 @app.route('/')
 def index():
     """Return a friendly HTTP greeting."""
-    a = 7
+    a = 8
     return f'Hello World!, a={a}'
 
 
@@ -137,20 +139,20 @@ def upload():
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
-def make_request(db, sql):
-    with db.connect() as conn:
-        result = conn.execute(sql)
-        for r in result:
-            print(r)
+async def make_request(dsn, sql):
+    async with create_engine(dsn) as engine:
+        async with engine.acquire() as conn:
+            result = await conn.execute(sql)
+            for r in result:
+                print(r)
 
 
 @app.route('/update')
 def update():
-    # asyncio.set_event_loop(asyncio.new_event_loop())
-    # with closing(asyncio.get_event_loop()) as loop:
-    #     print('update tb')
-    #     loop.run_until_complete(make_request(db, 'SELECT * FROM region'))
-    make_request(db, 'SELECT * FROM region')
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    with closing(asyncio.get_event_loop()) as loop:
+        print('update tb')
+        loop.run_until_complete(make_request(DSN, 'SELECT * FROM region'))
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
