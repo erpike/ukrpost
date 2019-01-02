@@ -5,3 +5,4 @@ env_variables:
   DB_USER: postgres
   DB_PASS: qwertypark
   DB_NAME: addr_db
+  GOOGLE_APPLICATION_CREDENTIALS: key.json
