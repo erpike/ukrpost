@@ -137,19 +137,20 @@ def upload():
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
-async def make_request(db, sql):
-    async with db.connect() as conn:
-        result = await conn.execute(sql)
+def make_request(db, sql):
+    with db.connect() as conn:
+        result = conn.execute(sql)
         for r in result:
             print(r)
 
 
 @app.route('/update')
 def update():
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    with closing(asyncio.get_event_loop()) as loop:
-        print('update tb')
-        loop.run_until_complete(make_request(db, 'SELECT * FROM region'))
+    # asyncio.set_event_loop(asyncio.new_event_loop())
+    # with closing(asyncio.get_event_loop()) as loop:
+    #     print('update tb')
+    #     loop.run_until_complete(make_request(db, 'SELECT * FROM region'))
+    make_request(db, 'SELECT * FROM region')
     return 'Done!', 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
